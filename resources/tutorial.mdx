@@ -1,0 +1,57 @@
+---
+title: Tutorial resources
+description: Learn how to build the Voice to Text app with step-by-step tutorials and video guides
+---
+
+Explore comprehensive learning resources to understand how the Voice to Text app works and how to build similar speech recognition features in your Android applications.
+
+## Available tutorials
+
+<CardGroup cols={2}>
+  <Card title="Medium blog post" icon="book" href="https://andresand.medium.com/voice-to-text-kotlin-android-jetpack-compose-3e4419dcbac3">
+    Read the detailed step-by-step tutorial that walks you through building the Voice to Text app from scratch
+  </Card>
+  
+  <Card title="YouTube video" icon="youtube" href="https://www.youtube.com/shorts/84Z8KAQkNg4">
+    Watch a quick video demonstration of the app in action and see the speech recognition feature working
+  </Card>
+</CardGroup>
+
+## What you'll learn
+
+The Medium tutorial covers the following topics:
+
+<AccordionGroup>
+  <Accordion title="Speech recognition integration">
+    Learn how to integrate Android's built-in speech recognition API using `RecognizerIntent` and handle the results in your Jetpack Compose UI.
+  </Accordion>
+  
+  <Accordion title="Permission handling">
+    Understand how to request and check for the `RECORD_AUDIO` permission at runtime using Android's permission system with ActivityCompat.
+  </Accordion>
+  
+  <Accordion title="Jetpack Compose UI">
+    Build a modern UI with Jetpack Compose components including `Button`, `BasicTextField`, and `Scaffold` to create an interactive speech-to-text interface.
+  </Accordion>
+  
+  <Accordion title="Activity result contracts">
+    Use the modern `ActivityResultContracts` API with `rememberLauncherForActivityResult` to handle speech recognition callbacks in a Compose-friendly way.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+The tutorial includes complete code examples that you can copy and adapt for your own projects. All source code is available in the [GitHub repository](https://github.com/AndreSand/VoiceToText).
+</Tip>
+
+## Prerequisites
+
+Before starting the tutorial, make sure you have:
+
+- Android Studio installed (latest stable version recommended)
+- Basic knowledge of Kotlin programming
+- Familiarity with Jetpack Compose fundamentals
+- An Android device or emulator for testing (API level 21+)
+
+<Note>
+Speech recognition works best on physical devices. While you can use an emulator, some features may be limited depending on your emulator configuration.
+</Note>

@@ -1,0 +1,141 @@
+---
+title: VoiceRecognitionScreen
+description: Main composable that provides speech-to-text conversion functionality
+---
+
+## Overview
+
+`VoiceRecognitionScreen` is the primary composable function that implements the voice recognition interface. It provides a text input field and a button that triggers Android's speech recognition API.
+
+## Function signature
+
+```kotlin
+@Composable
+fun VoiceRecognitionScreen(modifier: Modifier = Modifier)
+```
+
+## Parameters
+
+<ParamField path="modifier" type="Modifier" default="Modifier">
+  Optional modifier for customizing the layout and appearance of the composable. Typically used to apply padding from the parent Scaffold.
+</ParamField>
+
+## Features
+
+### State management
+
+The composable maintains local state for the text prompt using `remember` and `mutableStateOf`:
+
+```kotlin
+var prompt by remember { mutableStateOf("") }
+```
+
+### Speech recognizer launcher
+
+Implements an activity result launcher for handling speech recognition results:
+
+<CodeGroup>
+```kotlin speechRecognizerLauncher
+val speechRecognizerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.StartActivityForResult(),
+    onResult = { result ->
+        val spokenText =
+            result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+        if (spokenText != null) {
+            prompt = spokenText  // Update prompt with recognized text
+        } else {
+            Toast.makeText(context, "Failed to recognize speech", Toast.LENGTH_SHORT).show()
+        }
+    }
+)
+```
+</CodeGroup>
+
+<ResponseField name="spokenText" type="String?">
+  The recognized speech text extracted from the recognition result. Returns null if speech recognition fails.
+</ResponseField>
+
+### Voice recognition trigger
+
+The "Speak" button initiates the speech recognition process with permission checks:
+
+```kotlin
+Button(
+    onClick = {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+            speechRecognizerLauncher.launch(intent)
+        } else {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                100
+            )
+        }
+    },
+    modifier = Modifier.padding(start = 8.dp)
+) {
+    Text("Speak")
+}
+```
+
+## UI components
+
+The screen consists of:
+
+1. **BasicTextField** - An editable text field with a placeholder that displays "Type or speak your message..." when empty
+2. **Speak Button** - Triggers the speech recognition flow or requests microphone permissions if not granted
+
+## Layout structure
+
+```kotlin
+Box(
+    modifier = modifier.fillMaxSize(),
+    contentAlignment = Alignment.Center
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        // TextField and Button components
+    }
+}
+```
+
+<Note>
+  The composable automatically requests the `RECORD_AUDIO` permission if it hasn't been granted when you click the "Speak" button.
+</Note>
+
+## Required permissions
+
+This composable requires the following Android permission:
+
+- `android.permission.RECORD_AUDIO` - Required for accessing the device microphone for speech recognition
+
+## Intent extras
+
+When launching the speech recognizer, the following extras are configured:
+
+<ParamField path="EXTRA_LANGUAGE_MODEL" type="String">
+  Set to `LANGUAGE_MODEL_FREE_FORM` for unrestricted speech recognition
+</ParamField>
+
+<ParamField path="EXTRA_LANGUAGE" type="Locale">
+  Uses the device's default locale for language-specific recognition
+</ParamField>
+
+<ParamField path="EXTRA_PROMPT" type="String">
+  Displays "Speak now..." as a prompt to the user during recognition
+</ParamField>

@@ -1,0 +1,81 @@
+---
+title: MainActivity
+description: Main entry point for the Voice to Text Android application
+---
+
+## Overview
+
+`MainActivity` is the primary activity component that serves as the entry point for the Voice to Text Android application. It extends `ComponentActivity` and sets up the app's UI using Jetpack Compose.
+
+## Class definition
+
+```kotlin
+class MainActivity : ComponentActivity()
+```
+
+## Methods
+
+### onCreate
+
+Initializes the activity and sets up the Compose UI hierarchy.
+
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?)
+```
+
+<ParamField path="savedInstanceState" type="Bundle?">
+  Contains the activity's previously saved state, or null if this is a newly created activity.
+</ParamField>
+
+## Implementation details
+
+The `onCreate` method performs the following operations:
+
+1. **Edge-to-edge display** - Enables edge-to-edge rendering for a modern, immersive UI experience
+2. **Theme application** - Wraps the UI in `VoiceTotextTheme` for consistent Material Design styling
+3. **Scaffold setup** - Uses Material 3 `Scaffold` with a top app bar and content area
+4. **Content composition** - Renders the `VoiceRecognitionScreen` with appropriate padding
+
+<CodeGroup>
+```kotlin onCreate implementation
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    setContent {
+        VoiceTotextTheme {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = { AppBar() }) { innerPadding ->
+                VoiceRecognitionScreen(
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
+        }
+    }
+}
+```
+</CodeGroup>
+
+<Note>
+  The `enableEdgeToEdge()` function call ensures that your app's content extends behind system bars for a modern, immersive experience.
+</Note>
+
+## Dependencies
+
+This class depends on the following components:
+
+- `VoiceRecognitionScreen` - The main composable that handles voice recognition functionality
+- `AppBar` - The top app bar composable that displays the app title
+- `VoiceTotextTheme` - The custom theme that provides Material Design styling
+
+## Required imports
+
+```kotlin
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+```

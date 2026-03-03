@@ -1,0 +1,174 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Voice to Text Android app
+---
+
+Find solutions to common problems you may encounter while using or developing the Voice to Text app.
+
+## Permission issues
+
+<AccordionGroup>
+  <Accordion title="App crashes when clicking the Speak button">
+    This usually happens when the `RECORD_AUDIO` permission is not properly declared in your `AndroidManifest.xml` file.
+    
+    **Solution:**
+    
+    Add the following permission to your `AndroidManifest.xml`:
+    
+    ```xml
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    ```
+    
+    The app will automatically request this permission at runtime when you click the Speak button for the first time.
+  </Accordion>
+  
+  <Accordion title="Permission dialog doesn't appear">
+    If the permission request dialog doesn't show up when you tap the Speak button, the app may have already been denied permission.
+    
+    **Solution:**
+    
+    1. Go to your device Settings
+    2. Navigate to Apps → Voice to Text
+    3. Tap Permissions
+    4. Enable the Microphone permission manually
+    5. Restart the app
+  </Accordion>
+  
+  <Accordion title="Permission permanently denied">
+    If you previously denied the permission and selected "Don't ask again," the app won't show the permission dialog.
+    
+    **Solution:**
+    
+    You need to manually enable the permission in your device settings or uninstall and reinstall the app.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+The `RECORD_AUDIO` permission is classified as a dangerous permission in Android, which means it must be requested at runtime for devices running Android 6.0 (API level 23) and higher.
+</Warning>
+
+## Speech recognition issues
+
+<AccordionGroup>
+  <Accordion title="Speech recognition fails immediately">
+    The speech recognizer returns a failure without attempting to listen.
+    
+    **Possible causes:**
+    
+    - No internet connection (Google's speech recognition requires internet)
+    - Speech recognition service is not available on the device
+    - The device doesn't have Google app or Google Play Services
+    
+    **Solution:**
+    
+    1. Check your internet connection
+    2. Verify that Google app is installed and updated
+    3. Test on a different device if the issue persists
+  </Accordion>
+  
+  <Accordion title="No text appears after speaking">
+    You spoke into the microphone, but the text field remains empty.
+    
+    **Solution:**
+    
+    - Speak clearly and closer to the microphone
+    - Check if the speech recognition dialog actually appeared
+    - Ensure you're speaking in a supported language (default is device locale)
+    - Look for a Toast message saying "Failed to recognize speech"
+  </Accordion>
+  
+  <Accordion title="Speech recognition not working in emulator">
+    The speech recognition feature may have limited functionality in Android emulators.
+    
+    **Solution:**
+    
+    Test the app on a physical Android device. Some emulators don't have proper microphone support or Google services configured.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+The app uses `RecognizerIntent.LANGUAGE_MODEL_FREE_FORM` which is optimized for free-form speech. It automatically uses your device's default locale for language recognition.
+</Note>
+
+## UI and Compose issues
+
+<AccordionGroup>
+  <Accordion title="Text field not updating with recognized speech">
+    The speech recognition works, but the `BasicTextField` doesn't show the transcribed text.
+    
+    **Solution:**
+    
+    This is likely a state management issue. Ensure that:
+    
+    - The `prompt` variable is declared with `remember { mutableStateOf("") }`
+    - The state update happens inside the `speechRecognizerLauncher` callback
+    - You're using `MainActivity.kt:86` properly to assign the recognized text
+  </Accordion>
+  
+  <Accordion title="Button click not responding">
+    The Speak button doesn't respond when clicked.
+    
+    **Solution:**
+    
+    - Check if you're testing on a preview (button clicks don't work in `@Preview`)
+    - Verify the `onClick` lambda is properly defined
+    - Run the app on an actual device or emulator, not just in preview mode
+  </Accordion>
+  
+  <Accordion title="Layout issues with edge-to-edge display">
+    Content appears behind the status bar or navigation bar.
+    
+    **Solution:**
+    
+    The app uses `enableEdgeToEdge()` and `Scaffold` with proper padding. Make sure you're applying the `innerPadding` modifier to the `VoiceRecognitionScreen` component as shown in `MainActivity.kt:55`.
+  </Accordion>
+</AccordionGroup>
+
+## Android version compatibility
+
+<AccordionGroup>
+  <Accordion title="App doesn't work on older Android versions">
+    The app requires certain minimum API levels for various features.
+    
+    **Requirements:**
+    
+    - **Minimum SDK:** API 21 (Android 5.0 Lollipop)
+    - **Runtime permissions:** API 23+ (Android 6.0 Marshmallow)
+    - **Edge-to-edge display:** API 29+ recommended (Android 10)
+    
+    **Solution:**
+    
+    Check your `build.gradle` file to ensure `minSdk` is set appropriately. For devices below API 23, permissions are granted at install time rather than runtime.
+  </Accordion>
+  
+  <Accordion title="ActivityResultContracts not found">
+    Compilation error related to `ActivityResultContracts` or `rememberLauncherForActivityResult`.
+    
+    **Solution:**
+    
+    Ensure you have the correct dependencies:
+    
+    ```gradle
+    implementation "androidx.activity:activity-compose:1.7.0" // or later
+    ```
+    
+    These APIs were introduced in AndroidX Activity 1.2.0.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+If you're still experiencing issues, check the [GitHub repository](https://github.com/AndreSand/VoiceToText) for the most up-to-date code and compare it with your implementation.
+</Tip>
+
+## Getting help
+
+If you've tried the solutions above and are still experiencing issues:
+
+1. Check the Android logcat for detailed error messages
+2. Review the [tutorial resources](/resources/tutorial) for implementation guidance
+3. Compare your code with the reference implementation in the GitHub repository
+4. Ensure all dependencies in `build.gradle` are up to date
+
+<Warning>
+Always test speech recognition features on physical devices when possible, as emulators may not fully support microphone input or Google services.
+</Warning>

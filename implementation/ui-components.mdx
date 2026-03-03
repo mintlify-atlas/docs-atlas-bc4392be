@@ -1,0 +1,268 @@
+---
+title: UI components
+description: Explore the Jetpack Compose components used to build the Voice to Text app interface
+---
+
+The Voice to Text app is built entirely with Jetpack Compose, using Material 3 components for a modern Android UI. This guide walks through the key composables and layout components.
+
+## App structure
+
+The main activity sets up the Compose UI hierarchy:
+
+```kotlin
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            VoiceTotextTheme {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = { AppBar() }) { innerPadding ->
+                    VoiceRecognitionScreen(
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+<Note>
+  `enableEdgeToEdge()` allows the app to draw behind system bars for a modern, immersive experience.
+</Note>
+
+## Top app bar
+
+The app uses Material 3's `TopAppBar` component to display the app title:
+
+```kotlin
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBar() {
+    TopAppBar(
+        title = {
+            Text(text = "Voice to Text App", color = Color.White)
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+    )
+}
+```
+
+### Key features
+
+- Uses `@OptIn(ExperimentalMaterial3Api::class)` because TopAppBar is experimental
+- Sets custom colors using `TopAppBarDefaults.topAppBarColors`
+- Uses `MaterialTheme.colorScheme.primary` for dynamic theming
+
+## Main screen layout
+
+The `VoiceRecognitionScreen` uses a combination of `Box` and `Row` to create a centered horizontal layout:
+
+```kotlin
+Box(
+    modifier = modifier.fillMaxSize(),
+    contentAlignment = Alignment.Center  // Center the Row in the middle of the screen
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        // TextField and Button
+    }
+}
+```
+
+<Steps>
+  <Step title="Box container">
+    The outer `Box` fills the entire screen and centers its content.
+    
+    ```kotlin
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    )
+    ```
+  </Step>
+  
+  <Step title="Row layout">
+    The inner `Row` arranges the text field and button horizontally.
+    
+    ```kotlin
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    )
+    ```
+  </Step>
+</Steps>
+
+## Text input field
+
+The app uses `BasicTextField` with a custom decoration box to create a bordered input field with placeholder text:
+
+```kotlin
+BasicTextField(
+    value = prompt,
+    onValueChange = { prompt = it },
+    modifier = Modifier
+        .weight(1f)
+        .padding(8.dp)
+        .border(1.dp, MaterialTheme.colorScheme.primary)
+        .padding(8.dp),
+    singleLine = true,
+    decorationBox = { innerTextField ->
+        if (prompt.isEmpty()) {
+            Text("Type or speak your message...", color = Color.Gray)
+        }
+        innerTextField()
+    }
+)
+```
+
+### Component breakdown
+
+<Accordion title="State management">
+  ```kotlin
+  var prompt by remember { mutableStateOf("") }
+  ```
+  
+  The text field value is stored in a `mutableStateOf` variable, which automatically triggers recomposition when the value changes.
+</Accordion>
+
+<Accordion title="Layout modifiers">
+  ```kotlin
+  modifier = Modifier
+      .weight(1f)  // Takes up remaining space in Row
+      .padding(8.dp)  // Outer padding
+      .border(1.dp, MaterialTheme.colorScheme.primary)  // Border
+      .padding(8.dp)  // Inner padding
+  ```
+  
+  The modifiers are applied in order:
+  1. `weight(1f)` makes the text field expand to fill available space
+  2. First `padding(8.dp)` adds spacing around the field
+  3. `border()` draws a colored border
+  4. Second `padding(8.dp)` adds space between border and text
+</Accordion>
+
+<Accordion title="Placeholder text">
+  ```kotlin
+  decorationBox = { innerTextField ->
+      if (prompt.isEmpty()) {
+          Text("Type or speak your message...", color = Color.Gray)
+      }
+      innerTextField()
+  }
+  ```
+  
+  The decoration box shows placeholder text when the field is empty. Unlike `TextField`, `BasicTextField` requires manual placeholder implementation.
+</Accordion>
+
+## Speak button
+
+A Material 3 `Button` triggers the speech recognition flow:
+
+```kotlin
+Button(
+    onClick = {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+            speechRecognizerLauncher.launch(intent)
+        } else {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                100
+            )
+        }
+    },
+    modifier = Modifier.padding(start = 8.dp)
+) {
+    Text("Speak")
+}
+```
+
+<Note>
+  The button checks for `RECORD_AUDIO` permission before launching speech recognition. See the [permissions guide](/implementation/permissions) for details.
+</Note>
+
+## Required imports
+
+To use these components, you need the following imports:
+
+```kotlin
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+```
+
+## Theming
+
+The app wraps its content in a custom theme:
+
+```kotlin
+VoiceTotextTheme {
+    // App content
+}
+```
+
+This theme provides:
+- Material 3 color scheme
+- Typography settings
+- Shape definitions
+
+<Warning>
+  Make sure to use `MaterialTheme.colorScheme` instead of the deprecated `MaterialTheme.colors` when working with Material 3.
+</Warning>
+
+## Preview support
+
+The app includes a preview for rapid UI development:
+
+```kotlin
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    VoiceTotextTheme {
+        VoiceRecognitionScreen()
+    }
+}
+```
+
+This allows you to see the UI in Android Studio's preview pane without running the app.

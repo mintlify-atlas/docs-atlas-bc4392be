@@ -1,0 +1,92 @@
+---
+title: AppBar
+description: Top app bar composable that displays the application title
+---
+
+## Overview
+
+`AppBar` is a simple composable function that renders a Material 3 top app bar with the application title. It provides consistent branding and navigation structure for the Voice to Text app.
+
+## Function signature
+
+```kotlin
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBar()
+```
+
+<Note>
+  This composable uses the `@OptIn(ExperimentalMaterial3Api::class)` annotation because `TopAppBar` is currently an experimental API in Material 3.
+</Note>
+
+## Parameters
+
+This composable does not accept any parameters.
+
+## Implementation
+
+<CodeGroup>
+```kotlin AppBar implementation
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBar() {
+    TopAppBar(
+        title = {
+            Text(text = "Voice to Text App", color = Color.White)
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        )
+    )
+}
+```
+</CodeGroup>
+
+## UI components
+
+### TopAppBar
+
+The composable uses Material 3's `TopAppBar` component with the following configuration:
+
+<ParamField path="title" type="@Composable () -> Unit">
+  A composable lambda that displays "Voice to Text App" in white text
+</ParamField>
+
+<ParamField path="colors" type="TopAppBarColors">
+  Applies custom colors using `TopAppBarDefaults.topAppBarColors()` with the container background set to the theme's primary color
+</ParamField>
+
+## Styling
+
+The app bar features:
+
+- **Title text**: "Voice to Text App" in white color
+- **Background color**: Uses `MaterialTheme.colorScheme.primary` for the container background, ensuring consistency with the app's theme
+
+## Usage
+
+The `AppBar` is typically used as the `topBar` parameter in a `Scaffold` composable:
+
+```kotlin
+Scaffold(
+    modifier = Modifier.fillMaxSize(),
+    topBar = { AppBar() }
+) { innerPadding ->
+    // Content goes here
+}
+```
+
+## Required imports
+
+```kotlin
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Color
+```
+
+<Note>
+  The app bar uses the theme's primary color scheme, which means its appearance will automatically adapt based on the app's theme configuration.
+</Note>

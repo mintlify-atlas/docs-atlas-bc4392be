@@ -1,0 +1,204 @@
+---
+title: Speech recognition
+description: Learn how to implement speech-to-text conversion using Android's RecognizerIntent API
+---
+
+This guide explains how the Voice to Text app implements speech recognition using Android's built-in `RecognizerIntent` API with Jetpack Compose.
+
+## How it works
+
+The app uses the `ActivityResultContracts.StartActivityForResult()` contract to launch the system's speech recognition activity and receive the transcribed text.
+
+<Steps>
+  <Step title="Register the activity result launcher">
+    Create a launcher that handles the speech recognition result using `rememberLauncherForActivityResult`.
+
+    ```kotlin
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            val spokenText =
+                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (spokenText != null) {
+                prompt = spokenText  // Update prompt with recognized text
+            } else {
+                Toast.makeText(context, "Failed to recognize speech", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+    ```
+
+    The launcher extracts the first result from `EXTRA_RESULTS` and updates the UI state with the recognized text.
+  </Step>
+
+  <Step title="Create the recognition intent">
+    Build an intent with `RecognizerIntent.ACTION_RECOGNIZE_SPEECH` and configure the language model and locale.
+
+    ```kotlin
+    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+    intent.putExtra(
+        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+    )
+    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+    intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+    ```
+
+    <Note>
+      `LANGUAGE_MODEL_FREE_FORM` is optimized for free-form speech rather than search queries.
+    </Note>
+  </Step>
+
+  <Step title="Launch the recognizer">
+    Call the launcher with the configured intent to start speech recognition.
+
+    ```kotlin
+    speechRecognizerLauncher.launch(intent)
+    ```
+
+    This opens the system's speech recognition dialog where users can speak their input.
+  </Step>
+</Steps>
+
+## Intent configuration options
+
+The `RecognizerIntent` API provides several configuration options:
+
+<Accordion title="Language model">
+  ```kotlin
+  intent.putExtra(
+      RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+      RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+  )
+  ```
+
+  - `LANGUAGE_MODEL_FREE_FORM`: For natural speech and dictation
+  - `LANGUAGE_MODEL_WEB_SEARCH`: Optimized for short search queries
+</Accordion>
+
+<Accordion title="Language selection">
+  ```kotlin
+  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+  ```
+
+  Sets the recognition language. The app uses the device's default locale, but you can specify any supported language (e.g., `Locale.US`, `Locale.FRENCH`).
+</Accordion>
+
+<Accordion title="Custom prompt">
+  ```kotlin
+  intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+  ```
+
+  Displays a custom message in the speech recognition dialog.
+</Accordion>
+
+## Complete implementation
+
+Here's the full `VoiceRecognitionScreen` composable from the app:
+
+```kotlin
+@Composable
+fun VoiceRecognitionScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    var prompt by remember { mutableStateOf("") }
+
+    // Launcher for speech recognition
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            val spokenText =
+                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (spokenText != null) {
+                prompt = spokenText  // Update prompt with recognized text
+            } else {
+                Toast.makeText(context, "Failed to recognize speech", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            BasicTextField(
+                value = prompt,
+                onValueChange = { prompt = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.primary)
+                    .padding(8.dp),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    if (prompt.isEmpty()) {
+                        Text("Type or speak your message...", color = Color.Gray)
+                    }
+                    innerTextField()
+                }
+            )
+
+            Button(
+                onClick = {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.RECORD_AUDIO
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                        intent.putExtra(
+                            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                        )
+                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+                        speechRecognizerLauncher.launch(intent)
+                    } else {
+                        ActivityCompat.requestPermissions(
+                            context as Activity,
+                            arrayOf(Manifest.permission.RECORD_AUDIO),
+                            100
+                        )
+                    }
+                },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Text("Speak")
+            }
+        }
+    }
+}
+```
+
+## Key implementation details
+
+<Note>
+  The speech recognizer launcher must be created at the composable level using `rememberLauncherForActivityResult`. You cannot create it inside the button's `onClick` handler.
+</Note>
+
+<Warning>
+  Always check for `RECORD_AUDIO` permission before launching the speech recognizer. See the [permissions guide](/implementation/permissions) for details.
+</Warning>
+
+## Error handling
+
+The app handles recognition failures by checking if `spokenText` is null:
+
+```kotlin
+if (spokenText != null) {
+    prompt = spokenText
+} else {
+    Toast.makeText(context, "Failed to recognize speech", Toast.LENGTH_SHORT).show()
+}
+```
+
+Common failure scenarios include:
+- User cancels the recognition dialog
+- No speech detected
+- Network issues (for cloud-based recognizers)
+- Recognizer not available on the device

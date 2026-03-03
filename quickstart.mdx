@@ -1,80 +1,242 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get the Voice to Text app running on your Android device or emulator in minutes
 ---
 
-## Get started in three steps
+## Prerequisites
 
-Get your documentation site running locally and make your first customization.
+Before you begin, ensure you have the following installed:
 
-### Step 1: Set up your local environment
+- Android Studio Hedgehog (2023.1.1) or newer
+- JDK 11 or higher
+- Android SDK with API level 24 or higher
+- An Android device or emulator running Android 7.0 (API 24) or higher
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Warning>
+  The app requires the `RECORD_AUDIO` permission. Make sure your device or emulator has microphone access enabled.
+</Warning>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the project to your local machine:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```bash terminal
+    git clone <repository-url>
+    cd voice-to-text-android
+    ```
+  </Step>
+  
+  <Step title="Open in Android Studio">
+    Open Android Studio and select "Open an existing project". Navigate to the cloned directory and click "OK".
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    <Tip>
+      Android Studio will automatically start syncing Gradle files. This may take a few minutes on the first run.
+    </Tip>
+  </Step>
+  
+  <Step title="Sync Gradle">
+    Wait for Gradle to sync all dependencies. The app uses standard AndroidX libraries:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```kotlin dependencies
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.material3)
+    ```
+  </Step>
+  
+  <Step title="Configure device or emulator">
+    Set up your target device:
+    
+    **For physical device:**
+    - Enable Developer Options and USB debugging
+    - Connect your device via USB
+    - Verify the device appears in Android Studio's device dropdown
+    
+    **For emulator:**
+    - Open AVD Manager in Android Studio
+    - Create a new virtual device with API 24 or higher
+    - Ensure the emulator has microphone access enabled in settings
+  </Step>
+  
+  <Step title="Run the app">
+    Click the Run button (green play icon) or press `Shift + F10`. Android Studio will build and install the app on your selected device.
+    
+    <Note>
+      The first build may take several minutes as Gradle downloads dependencies and compiles the project.
+    </Note>
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Using the app
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Once the app is running, you'll see a simple interface with a text field and a "Speak" button.
 
-### Step 3: Go live
+<Steps>
+  <Step title="Grant microphone permission">
+    Tap the "Speak" button. On first use, the app will request permission to record audio. Tap "Allow" to grant the permission.
+    
+    ```kotlin MainActivity.kt:125-143
+    if (ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        // Launch speech recognizer
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        speechRecognizerLauncher.launch(intent)
+    } else {
+        // Request permission
+        ActivityCompat.requestPermissions(
+            context as Activity,
+            arrayOf(Manifest.permission.RECORD_AUDIO),
+            100
+        )
+    }
+    ```
+  </Step>
+  
+  <Step title="Speak your message">
+    After granting permission, tap "Speak" again. A Google speech recognition dialog will appear with the prompt "Speak now..."
+    
+    Speak clearly into your device's microphone. The recognized text will automatically populate the text field.
+  </Step>
+  
+  <Step title="View results">
+    The recognized speech appears in the text field. You can also manually type or edit the text if needed.
+    
+    ```kotlin MainActivity.kt:80-91
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            val spokenText = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (spokenText != null) {
+                prompt = spokenText  // Update text field
+            } else {
+                Toast.makeText(context, "Failed to recognize speech", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+    ```
+  </Step>
+</Steps>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Project structure
+
+Here's an overview of the key files in the project:
+
+```
+app/src/main/
+├── java/com/android/example/voicetotext/
+│   ├── MainActivity.kt           # Main activity and UI components
+│   └── ui/theme/
+│       ├── Color.kt             # Material3 color definitions
+│       ├── Theme.kt             # App theme configuration
+│       └── Type.kt              # Typography styles
+├── res/
+│   ├── values/
+│   │   └── strings.xml          # String resources
+│   └── xml/
+│       └── backup_rules.xml     # Backup configuration
+└── AndroidManifest.xml          # App manifest with permissions
+```
+
+## Understanding the core components
+
+### MainActivity
+
+The `MainActivity` class in `MainActivity.kt:45-61` sets up the app with edge-to-edge display and Jetpack Compose:
+
+```kotlin MainActivity.kt
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            VoiceTotextTheme {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = { AppBar() }) { innerPadding ->
+                    VoiceRecognitionScreen(
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+### VoiceRecognitionScreen
+
+This composable function (`MainActivity.kt:75-152`) contains all the UI and voice recognition logic:
+
+- **Text field**: A `BasicTextField` with a custom decoration box for placeholder text
+- **Voice button**: Triggers the speech recognition flow
+- **Result handler**: Processes the recognized speech and updates the UI state
+
+### RecognizerIntent configuration
+
+The app configures the speech recognizer with these parameters in `MainActivity.kt:130-136`:
+
+```kotlin
+val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+intent.putExtra(
+    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM  // Free-form speech
+)
+intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+```
+
+<Tip>
+  The `LANGUAGE_MODEL_FREE_FORM` is optimized for general dictation and conversational speech, making it ideal for this use case.
+</Tip>
+
+## Troubleshooting
+
+### Permission denied
+
+If you see a "Permission denied" error:
+1. Check that the `RECORD_AUDIO` permission is declared in `AndroidManifest.xml`
+2. Ensure you granted the permission when prompted
+3. Go to device Settings > Apps > VoiceTotext > Permissions and verify microphone access
+
+### Speech recognition not available
+
+If you get a "Failed to recognize speech" error:
+- Ensure your device has an active internet connection (Google's speech recognition requires network access)
+- Verify that Google app is installed and up-to-date on your device
+- Check that the device microphone is working properly
+
+### Emulator microphone issues
+
+If the emulator isn't detecting your voice:
+1. Open emulator Settings > Privacy > Microphone
+2. Ensure "VoiceTotext" has microphone permission
+3. In Android Studio, go to Tools > AVD Manager > Edit > Show Advanced Settings
+4. Verify "Enable Device Frame" is checked (enables microphone passthrough)
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you have the app running, explore these topics:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Speech Recognition" icon="microphone" href="/implementation/speech-recognition">
+    Deep dive into how speech-to-text works
+  </Card>
+  <Card title="UI Components" icon="palette" href="/implementation/ui-components">
+    Learn about the Jetpack Compose UI components
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/main-activity">
+    Explore detailed API documentation
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/resources/troubleshooting">
+    Solutions to common issues
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

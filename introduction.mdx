@@ -1,0 +1,106 @@
+---
+title: Voice to Text Android App
+description: A modern Android application demonstrating speech-to-text conversion using Jetpack Compose and Android's speech recognition API
+---
+
+<Note>
+  This is an educational example app showcasing best practices for implementing voice recognition in modern Android applications.
+</Note>
+
+## Overview
+
+The Voice to Text app is a clean, minimalist Android application that demonstrates how to implement speech-to-text functionality using Android's built-in `RecognizerIntent` API. Built entirely with Jetpack Compose and Material3 design, it provides a modern UI that allows users to convert their spoken words into text instantly.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get the app running on your device in minutes
+  </Card>
+  <Card title="Speech Recognition" icon="microphone" href="/implementation/speech-recognition">
+    Learn how speech-to-text conversion works
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/main-activity">
+    Detailed documentation of key functions and classes
+  </Card>
+  <Card title="Permissions" icon="shield" href="/implementation/permissions">
+    Handle audio recording permissions properly
+  </Card>
+</CardGroup>
+
+## Key features
+
+### Speech-to-text conversion
+
+The app uses Android's `RecognizerIntent.ACTION_RECOGNIZE_SPEECH` to convert spoken words into text. The recognition is powered by Google's speech recognition service, providing accurate results in real-time.
+
+### Runtime permission handling
+
+The app properly requests and handles the `RECORD_AUDIO` permission at runtime, following Android's best practices for permission management. Users are prompted only when they attempt to use the voice recognition feature.
+
+### Modern Jetpack Compose UI
+
+Built entirely with Jetpack Compose, the app features:
+- Material3 design components
+- Edge-to-edge layout support
+- Composable functions for reusable UI elements
+- State management using `remember` and `mutableStateOf`
+
+### Activity result API
+
+The app demonstrates the modern `ActivityResultContracts` API instead of the deprecated `onActivityResult()` method, showing how to handle speech recognition results in a type-safe manner.
+
+## Technical specifications
+
+<CodeGroup>
+```kotlin build.gradle.kts
+android {
+    namespace = "com.android.example.voicetotext"
+    compileSdk = 35
+    
+    defaultConfig {
+        minSdk = 24
+        targetSdk = 35
+    }
+    
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+```
+
+```xml AndroidManifest.xml
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
+</CodeGroup>
+
+<Tip>
+  The app supports Android API level 24 (Android 7.0) and above, ensuring compatibility with over 95% of Android devices in the market.
+</Tip>
+
+## What you'll learn
+
+By exploring this app, you'll gain hands-on experience with:
+
+- Implementing speech recognition using `RecognizerIntent`
+- Building UIs with Jetpack Compose and Material3
+- Handling runtime permissions properly
+- Using the Activity Result API for launching intents
+- Managing UI state with Compose's state management
+- Creating custom text fields with decoration boxes
+
+## Architecture overview
+
+The app follows a simple, single-activity architecture:
+
+```
+MainActivity
+  └─ VoiceRecognitionScreen (Composable)
+      ├─ BasicTextField (text input)
+      ├─ Button (voice trigger)
+      └─ speechRecognizerLauncher (result handler)
+```
+
+The entire UI is built using composable functions, making it easy to understand, test, and maintain. The voice recognition logic is integrated directly into the UI layer, demonstrating a straightforward approach suitable for simple applications.
+
+## Getting started
+
+Ready to get your hands on the code? Head over to the [Quickstart guide](/quickstart) to clone the repository and run the app on your device or emulator.

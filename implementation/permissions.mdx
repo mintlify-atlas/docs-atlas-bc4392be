@@ -1,0 +1,179 @@
+---
+title: Permissions
+description: Learn how to handle audio recording permissions for speech recognition in Android
+---
+
+The Voice to Text app requires the `RECORD_AUDIO` permission to access the device's microphone for speech recognition. This guide explains how to declare and request this permission.
+
+## Declaring permissions in the manifest
+
+First, declare the permission in your `AndroidManifest.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.VoiceTotext">
+        <!-- ... -->
+    </application>
+
+</manifest>
+```
+
+<Note>
+  The `RECORD_AUDIO` permission is classified as a dangerous permission in Android, which means it must be requested at runtime for Android 6.0 (API level 23) and higher.
+</Note>
+
+## Runtime permission flow
+
+The app implements a two-step permission flow:
+
+<Steps>
+  <Step title="Check if permission is granted">
+    Before launching speech recognition, check the current permission status using `ContextCompat.checkSelfPermission`.
+
+    ```kotlin
+    if (ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        // Permission granted - launch speech recognizer
+    } else {
+        // Permission not granted - request it
+    }
+    ```
+  </Step>
+
+  <Step title="Request permission if needed">
+    If the permission is not granted, request it using `ActivityCompat.requestPermissions`.
+
+    ```kotlin
+    ActivityCompat.requestPermissions(
+        context as Activity,
+        arrayOf(Manifest.permission.RECORD_AUDIO),
+        100
+    )
+    ```
+
+    <Warning>
+      The request code `100` is used to identify this permission request when handling the result. You can use any unique integer value.
+    </Warning>
+  </Step>
+</Steps>
+
+## Complete implementation
+
+Here's how the app integrates permission checking into the speech recognition button:
+
+```kotlin
+Button(
+    onClick = {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+            speechRecognizerLauncher.launch(intent)
+        } else {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                100
+            )
+        }
+    },
+    modifier = Modifier.padding(start = 8.dp)
+) {
+    Text("Speak")
+}
+```
+
+## Required imports
+
+To implement permission handling, you need these imports:
+
+```kotlin
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+```
+
+## Permission states
+
+The permission check returns one of these states:
+
+<Tabs>
+  <Tab title="Granted">
+    ```kotlin
+    PackageManager.PERMISSION_GRANTED
+    ```
+    
+    The user has granted the permission. You can proceed with speech recognition.
+  </Tab>
+  
+  <Tab title="Denied">
+    ```kotlin
+    PackageManager.PERMISSION_DENIED
+    ```
+    
+    The user has not granted the permission. You must request it before accessing the microphone.
+  </Tab>
+</Tabs>
+
+## Best practices
+
+<Warning>
+  Always check permissions before attempting to use the microphone. Failing to do so will cause a `SecurityException` on Android 6.0 and higher.
+</Warning>
+
+<Note>
+  If the user denies the permission multiple times, Android may stop showing the permission dialog. Consider explaining why you need the permission before requesting it, especially after a denial.
+</Note>
+
+### Handling permission denial
+
+The current implementation requests permission when the user taps the "Speak" button. For a better user experience, you might want to:
+
+1. Show an explanation dialog before requesting the permission
+2. Handle the permission result to provide feedback
+3. Detect when the user has permanently denied the permission and direct them to app settings
+
+### Alternative: Using accompanist permissions library
+
+For a more Compose-friendly approach, consider using the Accompanist Permissions library:
+
+```kotlin
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun VoiceRecognitionScreen() {
+    val permissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    
+    Button(onClick = {
+        if (permissionState.status.isGranted) {
+            // Launch speech recognizer
+        } else {
+            permissionState.launchPermissionRequest()
+        }
+    }) {
+        Text("Speak")
+    }
+}
+```
+
+This approach integrates better with Compose's declarative paradigm.
