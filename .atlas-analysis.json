@@ -1,0 +1,57 @@
+{
+  "projectType": "general",
+  "projectName": "Voice to Text",
+  "projectDescription": "Android app demonstrating speech-to-text conversion using Jetpack Compose and Android's speech recognition API",
+  "theme": "palm",
+  "primaryColor": "#6650a4",
+  "lightColor": "#D0BCFF",
+  "darkColor": "#6650a4",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Implementation",
+        "pages": [
+          "implementation/speech-recognition",
+          "implementation/permissions",
+          "implementation/ui-components"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api/main-activity",
+          "api/voice-recognition-screen",
+          "api/app-bar"
+        ]
+      },
+      {
+        "group": "Resources",
+        "pages": [
+          "resources/tutorial",
+          "resources/troubleshooting"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Speech-to-text conversion using Android's RecognizerIntent",
+    "Runtime audio recording permission handling",
+    "Modern Jetpack Compose UI with Material3 design",
+    "Real-time text display from voice input",
+    "Simple and intuitive user interface"
+  ],
+  "publicApiSurface": [
+    "MainActivity",
+    "VoiceRecognitionScreen",
+    "AppBar",
+    "speechRecognizerLauncher",
+    "RECORD_AUDIO permission"
+  ]
+}
