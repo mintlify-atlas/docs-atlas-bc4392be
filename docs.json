@@ -40,7 +40,8 @@
         "pages": [
           "api/main-activity",
           "api/voice-recognition-screen",
-          "api/app-bar"
+          "api/app-bar",
+          "api/theme"
         ]
       },
       {

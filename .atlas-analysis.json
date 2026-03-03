@@ -51,6 +51,7 @@
     "MainActivity",
     "VoiceRecognitionScreen",
     "AppBar",
+    "VoiceTotextTheme",
     "speechRecognizerLauncher",
     "RECORD_AUDIO permission"
   ]
